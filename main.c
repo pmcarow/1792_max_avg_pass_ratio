@@ -5,85 +5,101 @@
 const int minSz = 1;
 const int maxSz = 10;
 
-int** createList(int rows) {
-    int* values = calloc(rows*2, sizeof(int));
-    int** arrRows = malloc(rows*sizeof(int*));
-    for (int i=0; i<rows; ++i)
+struct ClassStruct {
+    int rows;
+    int** ClassList;
+    float** ClassStats;
+};
+
+void createList(struct ClassStruct* CS) {
+    int* i_values = calloc(CS->rows*2, sizeof(int));
+    float* f_values = calloc(CS->rows*2, sizeof(float));
+    CS->ClassList = malloc(CS->rows*sizeof(int*));
+    CS->ClassStats = malloc(CS->rows*sizeof(float*));
+    for (int i=0; i<CS->rows; ++i)
     {
-        arrRows[i] = values + i*2;
+        CS->ClassList[i] = i_values+i*2;
+        CS->ClassStats[i] = f_values+i*2;
     }
 
-    for(int i=0; i<rows; i++) {
-        arrRows[i][1] = rand() % (maxSz - minSz + 1) + minSz;
-        arrRows[i][0] = rand() % (arrRows[i][1] - minSz + 1) + minSz;
+    for(int i=0; i<CS->rows; i++) {
+        CS->ClassList[i][1] = rand() % (maxSz - minSz + 1) + minSz;
+        CS->ClassList[i][0] = rand() % (CS->ClassList[i][1] - minSz + 1) + minSz;
+        CS->ClassStats[i][0] = (float)CS->ClassList[i][0]/(float)CS->ClassList[i][1];
+        CS->ClassStats[i][1] = (float)(CS->ClassList[i][0]+1)/(float)(CS->ClassList[i][1]+1);
     }
-    return arrRows;
 }
 
-void printList(int rows, int** CL) {
-    for(int i=0; i<rows; i++) {
+void printList(struct ClassStruct* CS) {
+    for(int i=0; i<CS->rows; i++) {
         printf("|");
-        for(int j=0; j<2; j++) {
-            printf("%d",CL[i][j]);
-            if(j<1) {
-                printf(",");
-            }  
-        }
-    printf("|");
-    printf("\n");
+        printf("%d,",CS->ClassList[i][0]);
+        printf("%d,",CS->ClassList[i][1]); 
+        printf("%f,",CS->ClassStats[i][0]);
+        printf("%f",CS->ClassStats[i][1]);
+        printf("|");
+        printf("\n");
     }
 }
 
 // Bubble sort implementation
-void bubbleSort(int rows,int** CL) {
-   for (int i = 0; i < rows - 1; i++) {
-        if (CL[i][1] > CL[i+1][1]) {
-            int* temp = CL[i];
-            CL[i] = CL[i + 1];
-            CL[i + 1] = temp;
+void bubbleSort(struct ClassStruct* CS) {
+   for (int i = 0; i < CS->rows - 1; i++) {
+        if (CS->ClassList[i][1] > CS->ClassList[i+1][1]) {
+            int* temp_i = CS->ClassList[i];
+            CS->ClassList[i] = CS->ClassList[i + 1];
+            CS->ClassList[i + 1] = temp_i;
+
+            float* temp_f = CS->ClassStats[i]; 
+            CS->ClassStats[i] = CS->ClassStats[i + 1];
+            CS->ClassStats[i + 1] = temp_f;
         }
     }
 }
 
-float magic(int rows, int ES, int** CL) {
+float magic(struct ClassStruct* CS, int ES) {
     float runningTotal = 0.0f;
     int ES_left = ES;
     float average;
-    for(int i=0; i<rows; i++) {
-        while(CL[i][0]<CL[i][1] && ES_left > 0) {
-            CL[i][0]++;
+    for(int i=0; i<CS->rows; i++) {
+        while(CS->ClassList[i][0]<CS->ClassList[i][1] && ES_left > 0) {
+            CS->ClassList[i][0]++;
+            CS->ClassList[i][1]++;
             ES_left--;
         }
-        runningTotal += (float)CL[i][0]/(float)CL[i][1];
+        runningTotal += (float)CS->ClassList[i][0]/CS->ClassList[i][1];
     }
-    average = runningTotal/(float)rows;
+    average = runningTotal/(float)CS->rows;
 
     return average*100;
 }
 
 int main() {
     srand ( time(NULL) );
-    int nClasses = rand() % (maxSz - minSz + 1) + minSz;
+
     int extraStudents = rand() % (maxSz - minSz + 1) + minSz;
-    int** classList = createList(nClasses);
+    
+    struct ClassStruct mainList;
+    
+    mainList.rows = rand() % (maxSz - minSz + 1) + minSz;
+    
+    createList(&mainList);
 
     printf("Extra Students: %d\n",extraStudents);
 
-    printList(nClasses,classList);
+    // printList(&mainList);
 
-    bubbleSort(nClasses,classList);
+    bubbleSort(&mainList);
 
-    printf("\n");
-    
-    // printList(nClasses,classList);
+    // printf("\n");
 
-    float avg = magic(nClasses,extraStudents,classList);
+    // float avg = magic(&mainList,extraStudents);
 
-    printList(nClasses,classList);
+    printList(&mainList);
 
     printf("\n");
 
-    printf("%f\n",avg);
+    // printf("%f\n",avg);
 
     return 0;
 }
